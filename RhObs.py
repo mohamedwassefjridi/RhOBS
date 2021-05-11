@@ -1,3 +1,5 @@
+#This first part is for establishing connection to the distant mongo database.
+
 from pymongo import MongoClient
 from pprint import pprint
 
@@ -11,6 +13,7 @@ collection=client.rhobs.get_collection("test")
 ### 0
 
 Musics={}
+
 for person in collection.find({},{'_id':0}):
     for music in list(person.values())[0]["music"]:
         if music in Musics:
@@ -24,7 +27,10 @@ pprint(Musics)
     
                 
 ### 1
-from datetime import datetime
+#In this part, we used a function in order to calculate age from a given string.
+#We used the previous output to calculate the average age per music genre. 
+
+from datetime import datetime, date
   
 def calculateAge(birthDate):
     birthDate=datetime.strptime(birthDate,"%Y-%m-%d")
@@ -50,29 +56,37 @@ for music in Ages:
 pprint(Ages)
 
 ### 2
+#In this part, we created a function that takes the city and the size as arguments.
+#First, it fetches all the ages from the collection and insert them into a list.
+#Then another list containing all the edges of the intervals is created. This last is useful to create a list with intervals as tuples.
+#Afterwards, the ages are effected accordingly to the intervals.
+#We have to notice that the intervals are open on the left and closed on the right
 
-#def agePyramid(city, size):
 size=4
 city='Blin'
-Age=[]
-for per in collection.find({},{'_id':0}):
-    if list(per.values())[0]["city"]==city:
-        Age.append(calculateAge(list(per.values())[0]["birthdate"]))
 
-Slices=list(range(min(Age),max(Age),size))+[max(Age)]
-frag=[(Slices[i],Slices[i+1]) for i in range(len(Slices)-1)]
-pyramid={}
-for i in Age:
-    k=1
-    while i>Slices[k]:
-        k+=1
+def agePyramid(city, size):
+    Age=[]
+    for per in collection.find({},{'_id':0}):
+        if list(per.values())[0]["city"]==city:
+            Age.append(calculateAge(list(per.values())[0]["birthdate"]))
 
-    if k not in pyramid:
-        pyramid[k]=1
-    else:
-        pyramid[k]+=1
-        
-Pyramideee={
-    frag[i-1]:pyramid[i] for i in pyramid
-}
-pprint(Pyramideee)
+    Slices=list(range(min(Age),max(Age),size))+[max(Age)]
+    frag=[(Slices[i],Slices[i+1]) for i in range(len(Slices)-1)]
+    pyramid={}
+    for i in Age:
+        k=1
+        while i>Slices[k]:
+            k+=1
+    
+        if k not in pyramid:
+            pyramid[k]=1
+        else:
+            pyramid[k]+=1
+            
+    Pyramide={
+        frag[i-1]:pyramid[i] for i in pyramid
+    }
+    return(Pyramide)
+    
+pprint(agePyramid(city,size))
